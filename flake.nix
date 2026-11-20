@@ -1,5 +1,5 @@
 {
-  description = "Website Flake";
+  description = "wichteln";
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
   outputs = { self, nixpkgs }:
