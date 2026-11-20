@@ -9,6 +9,7 @@ from flask import Flask, abort, flash, g, redirect, render_template, request, se
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 DB_PATH = os.environ.get("DB_PATH", str(Path(__file__).parent / "wichteln.db"))
+Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
 
 app = Flask(__name__)
 app.secret_key = os.environ["SECRET_KEY"]

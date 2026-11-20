@@ -43,9 +43,13 @@
         Env = [
           "FLASK_APP=app.py"
           "FLASK_ENV=production"
+          "DB_PATH=/data/wichteln.db"
         ];
         ExposedPorts = {
           "5000/tcp" = {};
+        };
+        Volumes = {
+          "/data" = {};
         };
       };
     };
