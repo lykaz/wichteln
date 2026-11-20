@@ -44,12 +44,14 @@
           "FLASK_APP=app.py"
           "FLASK_ENV=production"
           "DB_PATH=/data/wichteln.db"
+          "BACKUP_DIR=/backups"
         ];
         ExposedPorts = {
           "5000/tcp" = {};
         };
         Volumes = {
           "/data" = {};
+          "/backups" = {};
         };
       };
     };

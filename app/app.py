@@ -1,6 +1,9 @@
 import os
 import random
 import sqlite3
+import threading
+import time
+from datetime import datetime, timezone
 from functools import wraps
 from pathlib import Path
 
@@ -10,6 +13,10 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 DB_PATH = os.environ.get("DB_PATH", str(Path(__file__).parent / "wichteln.db"))
 Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
+
+BACKUP_DIR = os.environ.get("BACKUP_DIR", str(Path(__file__).parent / "backups"))
+BACKUP_INTERVAL_SECONDS = int(os.environ.get("BACKUP_INTERVAL_HOURS", "24")) * 3600
+BACKUP_KEEP = int(os.environ.get("BACKUP_KEEP", "14"))
 
 app = Flask(__name__)
 app.secret_key = os.environ["SECRET_KEY"]
@@ -45,6 +52,32 @@ def init_db():
     db.executescript((Path(__file__).parent / "schema.sql").read_text())
     db.commit()
     db.close()
+
+
+def backup_once():
+    Path(BACKUP_DIR).mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    dest_path = Path(BACKUP_DIR) / f"wichteln-{stamp}.db"
+
+    src = sqlite3.connect(DB_PATH)
+    dest = sqlite3.connect(dest_path)
+    with dest:
+        src.backup(dest)
+    src.close()
+    dest.close()
+
+    backups = sorted(Path(BACKUP_DIR).glob("wichteln-*.db"))
+    for old in backups[:-BACKUP_KEEP]:
+        old.unlink()
+
+
+def backup_loop():
+    while True:
+        try:
+            backup_once()
+        except Exception as exc:
+            app.logger.exception("Scheduled backup failed: %s", exc)
+        time.sleep(BACKUP_INTERVAL_SECONDS)
 
 
 def current_user():
@@ -326,3 +359,4 @@ def exclusion_delete(group_id, user_id_a, user_id_b):
 
 
 init_db()
+threading.Thread(target=backup_loop, daemon=True).start()

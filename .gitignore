@@ -2,4 +2,5 @@
 __pycache__/
 *.pyc
 app/wichteln.db
+app/backups/
 .env
