@@ -10,6 +10,8 @@
     pythonEnv = pkgs.python3.withPackages (ps: with ps; [
       flask
       gunicorn
+      authlib
+      requests
     ]);
 
     appCode = pkgs.stdenv.mkDerivation {
@@ -30,7 +32,7 @@
     };
 
     packages.${system}.dockerImage = pkgs.dockerTools.buildLayeredImage {
-      name = "website";
+      name = "wichteln";
       tag = "latest";
 
       contents = [ pythonEnv appCode ];
