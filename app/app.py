@@ -235,6 +235,15 @@ def group_detail(group_id):
         (group_id,),
     ).fetchall()
 
+    non_members = db.execute(
+        """
+        SELECT * FROM users
+        WHERE id NOT IN (SELECT user_id FROM group_members WHERE group_id = ?)
+        ORDER BY name
+        """,
+        (group_id,),
+    ).fetchall()
+
     my_items = db.execute(
         "SELECT * FROM wishlist_items WHERE group_id = ? AND user_id = ? ORDER BY id",
         (group_id, user["id"]),
@@ -259,11 +268,30 @@ def group_detail(group_id):
         user=user,
         group=group,
         members=members,
+        non_members=non_members,
         exclusions=exclusions,
         my_items=my_items,
         receiver=receiver,
         receiver_items=receiver_items,
     )
+
+
+@app.route("/groups/<int:group_id>/members/add", methods=["POST"])
+@login_required
+def member_add(group_id):
+    user = current_user()
+    db = get_db()
+    group = get_group_or_404(group_id, user["id"])
+    if group["owner_id"] != user["id"] or group["drawn_at"] is not None:
+        abort(403)
+
+    new_member_id = int(request.form["user_id"])
+    db.execute(
+        "INSERT OR IGNORE INTO group_members (group_id, user_id) VALUES (?, ?)",
+        (group_id, new_member_id),
+    )
+    db.commit()
+    return redirect(url_for("group_detail", group_id=group_id))
 
 
 @app.route("/groups/<int:group_id>/draw", methods=["POST"])

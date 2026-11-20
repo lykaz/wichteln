@@ -7,6 +7,14 @@
     <ul>
       {% for m in members %}<li>{{ m['name'] }}{% if m['id'] == group['owner_id'] %} (owner){% endif %}</li>{% endfor %}
     </ul>
+    {% if not group['drawn_at'] and user['id'] == group['owner_id'] and non_members %}
+      <form method="post" action="{{ url_for('member_add', group_id=group['id']) }}">
+        <select name="user_id">
+          {% for u in non_members %}<option value="{{ u['id'] }}">{{ u['name'] }}</option>{% endfor %}
+        </select>
+        <button type="submit">Add member</button>
+      </form>
+    {% endif %}
   </section>
 
   {% if group['drawn_at'] %}
