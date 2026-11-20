@@ -85,4 +85,14 @@
       <button type="submit">Add</button>
     </form>
   </section>
+
+  {% if user['id'] == group['owner_id'] %}
+    <section>
+      <h2>Danger zone</h2>
+      <form method="post" action="{{ url_for('group_delete', group_id=group['id']) }}"
+            onsubmit="return confirm('Delete this group and all its wishlists/assignments? This cannot be undone.');">
+        <button type="submit" class="button-danger">Delete group</button>
+      </form>
+    </section>
+  {% endif %}
 {% endblock %}

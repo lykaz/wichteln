@@ -386,5 +386,24 @@ def exclusion_delete(group_id, user_id_a, user_id_b):
     return redirect(url_for("group_detail", group_id=group_id))
 
 
+@app.route("/groups/<int:group_id>/delete", methods=["POST"])
+@login_required
+def group_delete(group_id):
+    user = current_user()
+    db = get_db()
+    group = get_group_or_404(group_id, user["id"])
+    if group["owner_id"] != user["id"]:
+        abort(403)
+
+    db.execute("DELETE FROM assignments WHERE group_id = ?", (group_id,))
+    db.execute("DELETE FROM wishlist_items WHERE group_id = ?", (group_id,))
+    db.execute("DELETE FROM exclusions WHERE group_id = ?", (group_id,))
+    db.execute("DELETE FROM group_members WHERE group_id = ?", (group_id,))
+    db.execute("DELETE FROM groups WHERE id = ?", (group_id,))
+    db.commit()
+    flash(f"Group \"{group['name']}\" was deleted.")
+    return redirect(url_for("index"))
+
+
 init_db()
 threading.Thread(target=backup_loop, daemon=True).start()

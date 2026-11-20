@@ -55,6 +55,12 @@ form.inline {
   color: inherit;
 }
 
+.button-danger {
+  background: #dc3545;
+  border-color: #b02a37;
+  color: #fff;
+}
+
 .tag {
   font-size: 0.8em;
   color: #666;
