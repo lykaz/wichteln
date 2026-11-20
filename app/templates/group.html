@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{{ group['name'] }}</h1>
+
+  <section>
+    <h2>Members</h2>
+    <ul>
+      {% for m in members %}<li>{{ m['name'] }}{% if m['id'] == group['owner_id'] %} (owner){% endif %}</li>{% endfor %}
+    </ul>
+  </section>
+
+  {% if group['drawn_at'] %}
+    <section>
+      <h2>Your Secret Santa assignment</h2>
+      {% if receiver %}
+        <p>You are giving a gift to <strong>{{ receiver['name'] }}</strong>.</p>
+        <h3>{{ receiver['name'] }}'s wishlist</h3>
+        {% if receiver_items %}
+          <ul>{% for item in receiver_items %}<li>{{ item['text'] }}</li>{% endfor %}</ul>
+        {% else %}
+          <p>No wishlist items yet.</p>
+        {% endif %}
+      {% else %}
+        <p>No assignment found for you in this group.</p>
+      {% endif %}
+    </section>
+  {% else %}
+    {% if user['id'] == group['owner_id'] %}
+      <section>
+        <h2>Exclusions</h2>
+        <p>Pairs who should never draw each other (e.g. couples).</p>
+        <ul>
+          {% for e in exclusions %}
+            <li>
+              {{ e['name_a'] }} &ndash; {{ e['name_b'] }}
+              <form method="post" action="{{ url_for('exclusion_delete', group_id=group['id'], user_id_a=e['user_id_a'], user_id_b=e['user_id_b']) }}" class="inline">
+                <button type="submit">Remove</button>
+              </form>
+            </li>
+          {% endfor %}
+        </ul>
+        <form method="post" action="{{ url_for('exclusion_add', group_id=group['id']) }}">
+          <select name="user_id_a">
+            {% for m in members %}<option value="{{ m['id'] }}">{{ m['name'] }}</option>{% endfor %}
+          </select>
+          must not draw
+          <select name="user_id_b">
+            {% for m in members %}<option value="{{ m['id'] }}">{{ m['name'] }}</option>{% endfor %}
+          </select>
+          <button type="submit">Add exclusion</button>
+        </form>
+      </section>
+
+      <section>
+        <h2>Draw names</h2>
+        <form method="post" action="{{ url_for('group_draw', group_id=group['id']) }}">
+          <button type="submit">Draw Names</button>
+        </form>
+      </section>
+    {% endif %}
+  {% endif %}
+
+  <section>
+    <h2>Your wishlist</h2>
+    <ul>
+      {% for item in my_items %}
+        <li>
+          {{ item['text'] }}
+          <form method="post" action="{{ url_for('wishlist_delete', group_id=group['id'], item_id=item['id']) }}" class="inline">
+            <button type="submit">Remove</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+    <form method="post" action="{{ url_for('wishlist_add', group_id=group['id']) }}">
+      <input type="text" name="text" placeholder="Add a wishlist item" required>
+      <button type="submit">Add</button>
+    </form>
+  </section>
+{% endblock %}

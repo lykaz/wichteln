@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+  {% if not user %}
+    <p>Welcome to Wichteln, the family Secret Santa app.</p>
+    <a class="button" href="{{ url_for('login') }}">Login</a>
+  {% else %}
+    <h1>Your groups</h1>
+    {% if not groups %}
+      <p>You're not in any groups yet.</p>
+    {% else %}
+      <ul class="group-list">
+        {% for group in groups %}
+          <li>
+            <a href="{{ url_for('group_detail', group_id=group['id']) }}">{{ group['name'] }}</a>
+            {% if group['drawn_at'] %}<span class="tag">drawn</span>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    <a class="button" href="{{ url_for('group_new') }}">Create group</a>
+  {% endif %}
+{% endblock %}
