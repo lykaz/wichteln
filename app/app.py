@@ -143,12 +143,12 @@ def index():
         return render_template("index.html", user=None, groups=None)
     groups = get_db().execute(
         """
-        SELECT groups.* FROM groups
-        JOIN group_members ON group_members.group_id = groups.id
-        WHERE group_members.user_id = ?
+        SELECT DISTINCT groups.* FROM groups
+        LEFT JOIN group_members ON group_members.group_id = groups.id
+        WHERE groups.owner_id = ? OR group_members.user_id = ?
         ORDER BY groups.id DESC
         """,
-        (user["id"],),
+        (user["id"], user["id"]),
     ).fetchall()
     return render_template("index.html", user=user, groups=groups)
 
