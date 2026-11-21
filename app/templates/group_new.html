@@ -5,11 +5,11 @@
     <label>Group name<br>
       <input type="text" name="name" required>
     </label>
-    <p>Members (you're always included):</p>
+    <p>Members:</p>
     {% for u in all_users %}
       <label class="checkbox-row">
-        <input type="checkbox" name="member_ids" value="{{ u['id'] }}">
-        {{ u['name'] }}
+        <input type="checkbox" name="member_ids" value="{{ u['id'] }}" {% if u['id'] == user['id'] %}checked{% endif %}>
+        {{ u['name'] }}{% if u['id'] == user['id'] %} (you){% endif %}
       </label>
     {% endfor %}
     <button type="submit">Create group</button>

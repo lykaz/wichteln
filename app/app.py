@@ -98,16 +98,17 @@ def login_required(view):
 
 
 def get_group_or_404(group_id, user_id):
-    group = get_db().execute(
-        """
-        SELECT groups.* FROM groups
-        JOIN group_members ON group_members.group_id = groups.id
-        WHERE groups.id = ? AND group_members.user_id = ?
-        """,
-        (group_id, user_id),
-    ).fetchone()
+    db = get_db()
+    group = db.execute("SELECT * FROM groups WHERE id = ?", (group_id,)).fetchone()
     if group is None:
         abort(404)
+    if group["owner_id"] != user_id:
+        member = db.execute(
+            "SELECT 1 FROM group_members WHERE group_id = ? AND user_id = ?",
+            (group_id, user_id),
+        ).fetchone()
+        if member is None:
+            abort(404)
     return group
 
 
@@ -191,10 +192,9 @@ def group_new():
     if request.method == "POST":
         name = request.form["name"].strip()
         member_ids = {int(x) for x in request.form.getlist("member_ids")}
-        member_ids.add(user["id"])
         if not name:
             flash("Group name is required.")
-            return render_template("group_new.html", all_users=all_users)
+            return render_template("group_new.html", all_users=all_users, user=user)
 
         cur = db.execute("INSERT INTO groups (name, owner_id) VALUES (?, ?)", (name, user["id"]))
         group_id = cur.lastrowid
@@ -205,7 +205,7 @@ def group_new():
         db.commit()
         return redirect(url_for("group_detail", group_id=group_id))
 
-    return render_template("group_new.html", all_users=all_users)
+    return render_template("group_new.html", all_users=all_users, user=user)
 
 
 @app.route("/groups/<int:group_id>")
